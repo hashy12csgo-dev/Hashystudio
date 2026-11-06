@@ -64,18 +64,33 @@ def read_setting(name: str) -> str:
     return match.group(1).strip() if match else ""
 
 
-def repo_from_git() -> tuple[str, str]:
-    """Fallback: work out "owner/repo" and the branch from the local .git folder."""
-    git = ROOT / ".git"
-    try:
-        config = (git / "config").read_text("utf-8")
-        url = re.search(r'\[remote "origin"\][^\[]*?url\s*=\s*(\S+)', config, re.S).group(1)
-        repo = re.search(r"github\.com[:/](.+?)(?:\.git)?/?$", url).group(1)
-        head = (git / "HEAD").read_text("utf-8").strip()
-        branch = head.rsplit("/", 1)[-1] if head.startswith("ref:") else "main"
-        return repo, branch
-    except (OSError, AttributeError):
-        return "", ""
+def parse_github_link(link: str) -> tuple[str, str, str]:
+    """'https://github.com/owner/repo/tree/main/some/folder' -> ('owner/repo', 'main', 'some/folder')."""
+    match = re.search(r"github\.com/([^/\s]+/[^/\s#?]+?)(?:\.git)?(?:/tree/([^/\s]+)(?:/([^\s#?]*))?)?/?$",
+                      link.strip())
+    if not match:
+        return "", "", ""
+    return match.group(1), match.group(2) or "", (match.group(3) or "").strip("/")
+
+
+def repo_from_git() -> tuple[str, str, str]:
+    """Fallback: find the .git folder (here or in a parent folder) and read owner/repo,
+    branch, and which sub-folder of the repo this app lives in."""
+    for git_root in (ROOT, *ROOT.parents):
+        git = git_root / ".git"
+        if not git.is_dir():
+            continue
+        try:
+            config = (git / "config").read_text("utf-8")
+            url = re.search(r'\[remote "origin"\][^\[]*?url\s*=\s*(\S+)', config, re.S).group(1)
+            repo = re.search(r"github\.com[:/](.+?)(?:\.git)?/?$", url).group(1)
+            head = (git / "HEAD").read_text("utf-8").strip()
+            branch = head.split("refs/heads/", 1)[-1] if head.startswith("ref:") else ""
+            folder = ROOT.relative_to(git_root).as_posix().strip(".")
+            return repo, branch, folder
+        except (OSError, AttributeError, ValueError):
+            return "", "", ""
+    return "", "", ""
 
 
 @st.cache_resource
@@ -93,13 +108,16 @@ def local_file_server() -> str:
 
 
 def media_base_url() -> str:
-    repo = read_setting("github_repo")
-    branch = read_setting("github_branch") or "main"
+    # 1) The GitHub link pasted in settings.toml (easiest, works in every case).
+    repo, branch, folder = parse_github_link(read_setting("github_link"))
+    # 2) Otherwise, detect it from git (Streamlit Cloud checks out the repo with git).
     if not repo:
-        repo, git_branch = repo_from_git()
-        branch = read_setting("github_branch") or git_branch or "main"
+        repo, branch, folder = repo_from_git()
     if repo:
-        return f"https://raw.githubusercontent.com/{repo}/{branch}"
+        branch = branch or "main"
+        prefix = f"/{quote(folder)}" if folder else ""
+        return f"https://raw.githubusercontent.com/{repo}/{quote(branch)}{prefix}"
+    # 3) Testing on your own computer, before anything is on GitHub.
     return local_file_server()
 
 
