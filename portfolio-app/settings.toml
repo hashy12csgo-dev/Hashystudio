@@ -1,6 +1,4 @@
-# Apna GitHub username aur repository ka naam yahan likhein (sirf ek dafa).
-# Example:  github_repo = "hasan123/portfolio-app"
-github_repo = "hasan123/portfolio-app"
-
-# Branch ka naam. Aksar "main" hi hota hai — change na karein.
-github_branch = "main"
+# GitHub par apne "portfolio-app" folder ko kholein, browser ke upar wala
+# link copy karein aur neeche "" ke beech paste kar dein.
+# Khali chhor dein to bhi Streamlit par aksar khud pehchan leta hai.
+github_link = "https://github.com/hashy12csgo-dev/Hashystudio/tree/main/portfolio-app"
