@@ -1,6 +1,6 @@
 # Apna GitHub username aur repository ka naam yahan likhein (sirf ek dafa).
 # Example:  github_repo = "hasan123/portfolio-app"
-github_repo = "hashy/portfolio-app"
+github_repo = "hasan123/portfolio-app"
 
 # Branch ka naam. Aksar "main" hi hota hai — change na karein.
 github_branch = "main"
