@@ -42,10 +42,10 @@ Target: har video **25 MB se kam**. Original files `D:\WEBSITE\assets\video` mei
 
 ## Step 3 — `settings.toml` mein apna naam likhna
 
-GitHub pr apni repository kholein → `settings.toml` file → ✏️ (Edit) button:
+GitHub pr wo folder kholein jis mein `app.py` hai, browser ke upar wala link copy karein. Phir `settings.toml` → ✏️ (Edit) button:
 
 ```toml
-github_repo = "APNA-USERNAME/portfolio-app"
+github_link = "https://github.com/APNA-USERNAME/REPO/tree/main/portfolio-app"
 ```
 
 **Commit changes** dabayein. (Isi se website ko pata chalta hai videos kahan se uthani hain.)
